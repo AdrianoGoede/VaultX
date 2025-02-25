@@ -35,8 +35,19 @@ VaultX is a demonstration banking application built to showcase **C#**, **.NET**
    git clone https://github.com/your-username/VaultX.git
    cd VaultX
 ```
+2. **Configure Database Connection String**
 
-2. **Backend Setup**
+- Navigate to Backend/appsettings.json
+- Replace the default connection string with your PostgreSQL connection string:
+```
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=VaultXDB;Username=your_user;Password=your_password"
+  }
+}
+```
+
+3. **Backend Setup**
 
 ```sh
   cd Backend
