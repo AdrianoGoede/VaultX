@@ -12,5 +12,5 @@ VaultX is a demonstration banking application designed to showcase skills in C#,
   🔐 Secure authentication and account management
   📊 Transaction history and balance tracking
   📡 RESTful & OData API with pagination and filtering
-
-This project serves as a portfolio piece to demonstrate proficiency in full-stack development and best practices in C# and React.
+  
+  This project serves as a portfolio piece to demonstrate proficiency in full-stack development and best practices in C# and React.
