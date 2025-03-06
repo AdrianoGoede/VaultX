@@ -33,13 +33,13 @@ namespace VaultX.Services.Models
         public uint DestinationAccountId { get; set; }
         public string Depositant { get; set; }
         public string CurrencyCode { get; set; }
-        public decimal Amount { get; set; }
+        public double Amount { get; set; }
     }
     
     public record TransferenceOperationRequest
     {
         public uint OriginAccountId { get; set; }
         public uint DestinationAccountId { get; set; }
-        public decimal Amount { get; set; }
+        public double Amount { get; set; }
     }
 }

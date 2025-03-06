@@ -3,6 +3,7 @@ using Microsoft.OData.Edm;
 using VaultX.Database;
 using VaultX.Database.Models;
 using VaultX.Extensions;
+using VaultX.Repositories.Interfaces;
 using VaultX.Services.Interfaces;
 using VaultX.Services.Models;
 
@@ -12,11 +13,13 @@ namespace VaultX.Services.Implementations
     {
         private readonly IConfiguration _configuration;
         private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly IExchangeRepository _exchangeRepository;
 
-        public CustomerAreaService(IConfiguration configuration, IServiceScopeFactory serviceScopeFactory)
+        public CustomerAreaService(IConfiguration configuration, IServiceScopeFactory serviceScopeFactory, IExchangeRepository exchangeRepository)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
+            _exchangeRepository = exchangeRepository ?? throw new ArgumentNullException(nameof(exchangeRepository));
         }
 
         public IQueryable<Customer> GetCustomerData(string authToken)
@@ -172,7 +175,7 @@ namespace VaultX.Services.Implementations
                 var account = new Account {
                     CustomerId = await GetCustomerIdFromAuthTokenAsync(accessToken),
                     CurrencyCode = newAccount.CurrencyCode.Trim(),
-                    Balance = 0m,
+                    Balance = 0d,
                     IsActive = true,
                     IsBlocked = false,
                     CreatedAt = DateTime.UtcNow
@@ -249,21 +252,22 @@ namespace VaultX.Services.Implementations
 
                 using (var dbContext = _serviceScopeFactory.CreateScope().ServiceProvider.GetRequiredService<MainDbContext>())
                 {
-                    var account = await dbContext.Accounts.SingleOrDefaultAsync(it => it.Id == newDeposit.DestinationAccountId);
+                    var account = await dbContext.Accounts.Include(it => it.Currency).SingleOrDefaultAsync(it => it.Id == newDeposit.DestinationAccountId);
                     if (account is null)
                         throw new ArgumentException($"Account {newDeposit.DestinationAccountId} not found");
                     
+                    var exchangeRate = await _exchangeRepository.GetExchangeRateAsync(account.Currency.Name, newDeposit.CurrencyCode);
                     var deposit = new Deposit {
                         DestinationAccountId = newDeposit.DestinationAccountId,
                         Depositant = newDeposit.Depositant.Trim(),
                         CurrencyCode = newDeposit.CurrencyCode.Trim(),
-                        ConversionRate = 1, // TO DO!
+                        ConversionRate = exchangeRate,
                         OriginalAmount = newDeposit.Amount,
-                        ConvertedAmount = newDeposit.Amount, // TO DO!
+                        ConvertedAmount = (newDeposit.Amount / exchangeRate),
                         Timestamp = DateTime.UtcNow
                     };
                     dbContext.Deposits.Add(deposit);
-                    account.Balance += newDeposit.Amount; // TO DO!
+                    account.Balance += (newDeposit.Amount / exchangeRate);
                     await dbContext.SaveChangesAsync();
 
                     return new StandardOperationResponse { Id = deposit.Id, Success = true, Message = "Deposit successful" };

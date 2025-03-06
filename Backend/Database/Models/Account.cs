@@ -9,7 +9,7 @@ namespace VaultX.Database.Models
         public uint Id { get; set; }
         public uint CustomerId { get; set; }
         public string CurrencyCode { get; set; }
-        public decimal Balance { get; set; }
+        public double Balance { get; set; }
         public bool IsActive { get; set; }
         public bool IsBlocked { get; set; }
         public DateTime CreatedAt { get; set; }

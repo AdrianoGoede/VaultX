@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using VaultX;
 using VaultX.Database;
+using VaultX.Repositories.Implementations;
+using VaultX.Repositories.Interfaces;
 using VaultX.Services.Implementations;
 using VaultX.Services.Interfaces;
 
@@ -20,6 +22,17 @@ builder.Services.AddControllers().AddNewtonsoftJson(options => {
     options.AddRouteComponents("Admin", Startup.GetAdminAreaEdmModel());
     options.AddRouteComponents("Customer", Startup.GetCustomerAreaEdmModel());
 });
+
+builder.Services.AddHttpClient("CoinGecko", opt => {
+    opt.BaseAddress = new Uri(builder.Configuration["ExchangeRates:Cryptocurrencies:ApiBaseUrl"]?.Trim());
+    opt.DefaultRequestHeaders.Add("Accept", "application/json");
+    opt.DefaultRequestHeaders.Add(
+        builder.Configuration["ExchangeRates:Cryptocurrencies:Authentication:ApiTokenHeaderName"],
+        builder.Configuration["ExchangeRates:Cryptocurrencies:Authentication:ApiTokenValue"]
+    );
+});
+
+builder.Services.AddSingleton<IExchangeRepository, ExchangeRepository>();
 
 builder.Services.AddTransient<IAdminAreaService, AdminAreService>();
 builder.Services.AddTransient<ICustomerAreaService, CustomerAreaService>();
